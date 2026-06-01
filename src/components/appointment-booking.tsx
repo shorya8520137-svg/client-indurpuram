@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { services, doctors } from '@/lib/data'
 import { Calendar } from '@/components/ui/calendar'
 import { toast } from 'sonner'
-import { CalendarDays, Clock, User, Check } from 'lucide-react'
+import { CalendarDays, Clock, User, Check, ChevronDown } from 'lucide-react'
 import {
   Sparkles, Hammer, HeartPulse, Wand2, AlignCenter, Smile, Palette, Syringe,
 } from 'lucide-react'
@@ -34,6 +34,18 @@ function BookingCard({ service, index }: { service: typeof services[0]; index: n
   const [phone, setPhone] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [booked, setBooked] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const calendarRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
+        setShowCalendar(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -104,19 +116,40 @@ function BookingCard({ service, index }: { service: typeof services[0]; index: n
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-[#4A5568] font-medium mb-1.5 block">
-              <CalendarDays className="w-3 h-3 inline mr-1 text-[#1B8A5D]" />Date
-            </label>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              disabled={(date) => date < new Date() || date.getDay() === 0}
-              className="border border-black/[0.06] rounded-xl p-1"
-            />
-          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="relative" ref={calendarRef}>
+              <label className="text-xs text-[#4A5568] font-medium mb-1.5 block">
+                <CalendarDays className="w-3 h-3 inline mr-1 text-[#1B8A5D]" />Date
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="w-full px-3 py-2.5 rounded-xl bg-white border border-black/[0.06] text-sm text-left flex items-center justify-between focus:outline-none focus:border-[#1B8A5D]/50"
+              >
+                <span className={selectedDate ? 'text-[#0F1A12]' : 'text-[#94A3B3]'}>
+                  {selectedDate ? selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select date'}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-[#94A3B3] transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
+              </button>
+              <AnimatePresence>
+                {showCalendar && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-0 mt-1 z-50 bg-white border border-black/[0.06] rounded-xl shadow-lg"
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => { setSelectedDate(date); setShowCalendar(false) }}
+                      disabled={(date) => date < new Date() || date.getDay() === 0}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           <div>
             <label className="text-xs text-[#4A5568] font-medium mb-1.5 block">
               <Clock className="w-3 h-3 inline mr-1 text-[#1B8A5D]" />Time
