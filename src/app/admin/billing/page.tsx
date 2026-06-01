@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FileText, Plus, X, Trash2 } from 'lucide-react'
 
 interface InvoiceItem {
-  service: string
+  serviceName: string
   quantity: number
   rate: number
 }
@@ -35,7 +35,7 @@ export default function BillingPage() {
     tax: 0,
     discount: 0,
   })
-  const [items, setItems] = useState<InvoiceItem[]>([{ service: '', quantity: 1, rate: 0 }])
+  const [items, setItems] = useState<InvoiceItem[]>([{ serviceName: '', quantity: 1, rate: 0 }])
 
   useEffect(() => {
     fetchInvoices()
@@ -52,7 +52,7 @@ export default function BillingPage() {
   }
 
   function addItem() {
-    setItems([...items, { service: '', quantity: 1, rate: 0 }])
+    setItems([...items, { serviceName: '', quantity: 1, rate: 0 }])
   }
 
   function removeItem(index: number) {
@@ -79,7 +79,7 @@ export default function BillingPage() {
       })
       setShowModal(false)
       setForm({ patientName: '', patientEmail: '', patientPhone: '', tax: 0, discount: 0 })
-      setItems([{ service: '', quantity: 1, rate: 0 }])
+      setItems([{ serviceName: '', quantity: 1, rate: 0 }])
       fetchInvoices()
     } catch {
       console.error('Failed to create invoice')
@@ -218,7 +218,7 @@ export default function BillingPage() {
                           required
                           placeholder="Service name"
                           value={item.serviceName}
-                          onChange={(e) => updateItem(i, 'service', e.target.value)}
+                          onChange={(e) => updateItem(i, 'serviceName', e.target.value)}
                           className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B8A5D]/20 focus:border-[#1B8A5D]"
                         />
                         <input
