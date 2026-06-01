@@ -18,6 +18,7 @@ model Patient {
   updatedAt   DateTime      @updatedAt
   appointments Appointment[]
   messages    ChatMessage[]
+  sessions    ChatSession[]
 }
 
 model Doctor {
