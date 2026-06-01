@@ -50,6 +50,7 @@ model Service {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   appointments    Appointment[]
+  invoiceItems    InvoiceItem[]
 }
 
 model Appointment {
@@ -69,6 +70,7 @@ model Appointment {
   service     Service  @relation(fields: [serviceId], references: [id])
   doctorId    String
   doctor      Doctor   @relation(fields: [doctorId], references: [id])
+  smsSent     Boolean  @default(false)
 }
 
 model GalleryItem {
@@ -92,14 +94,32 @@ model Testimonial {
   createdAt DateTime @default(now())
 }
 
+model ChatSession {
+  id         String        @id @default(cuid())
+  patientId  String?
+  patient    Patient?      @relation(fields: [patientId], references: [id])
+  patientName String?
+  patientEmail String?
+  patientPhone String?
+  status     String        @default("active")
+  isAdminTakeover Boolean  @default(false)
+  adminId    String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  messages   ChatMessage[]
+}
+
 model ChatMessage {
-  id        String   @id @default(cuid())
-  content   String
-  sender    String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  patientId String?
-  patient   Patient? @relation(fields: [patientId], references: [id])
+  id         String       @id @default(cuid())
+  content    String
+  sender     String
+  isRead     Boolean      @default(false)
+  isAdmin    Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  sessionId  String?
+  session    ChatSession? @relation(fields: [sessionId], references: [id])
+  patientId  String?
+  patient    Patient?     @relation(fields: [patientId], references: [id])
 }
 
 model Contact {
@@ -110,6 +130,100 @@ model Contact {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  invoiceNo   String        @unique
+  patientName String
+  patientEmail String
+  patientPhone String
+  subtotal    Float
+  tax         Float         @default(0)
+  discount    Float         @default(0)
+  total       Float
+  status      String        @default("pending")
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  items       InvoiceItem[]
+  transactions Transaction[]
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  service   String
+  description String?
+  quantity  Int     @default(1)
+  rate      Float
+  amount    Float
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id])
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  type      String
+  amount    Float
+  method    String   @default("cash")
+  note      String?
+  date      DateTime @default(now())
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+}
+
+model MaintenanceTicket {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  equipment   String
+  priority    String   @default("medium")
+  status      String   @default("open")
+  reportedBy  String
+  assignedTo  String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Staff {
+  id          String       @id @default(cuid())
+  name        String
+  email       String       @unique
+  phone       String
+  role        String
+  department  String
+  image       String?
+  faceDescriptor String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  attendance  Attendance[]
+}
+
+model Attendance {
+  id           String   @id @default(cuid())
+  staffId      String
+  staff        Staff    @relation(fields: [staffId], references: [id])
+  date         DateTime @default(now())
+  checkIn      DateTime @default(now())
+  checkOut     DateTime?
+  status       String   @default("present")
+  verifiedBy   String   @default("face")
+  createdAt    DateTime @default(now())
+}
+
+model SmsLog {
+  id          String   @id @default(cuid())
+  to          String
+  message     String
+  type        String
+  status      String   @default("sent")
+  referenceId String?
+  sentAt      DateTime @default(now())
+  createdAt   DateTime @default(now())
 }
 
 model SiteContent {

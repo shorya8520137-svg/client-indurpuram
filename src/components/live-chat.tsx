@@ -88,6 +88,9 @@ export function LiveChat() {
           sessionId: sessionId || crypto.randomUUID(),
           content,
           language: 'en',
+          patientName: name || undefined,
+          patientEmail: '',
+          patientPhone: phone || undefined,
         }),
       })
       const data = await res.json()

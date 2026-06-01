@@ -14,7 +14,7 @@ export function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { content, sessionId } = body
+    const { content, sessionId, patientName, patientEmail, patientPhone } = body
 
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -37,8 +37,76 @@ export async function POST(request: Request) {
     const data = await res.json()
     const reply = data.choices?.[0]?.message?.content || 'Thank you! Our team will get back to you shortly.'
 
-    return Response.json({ success: true, reply, message: { content: reply }, sessionId }, { status: 201 })
+    const bookingMatch = content.match(/book|appointment|schedule|visit/i)
+
+    const { prisma } = await import('@/lib/prisma')
+
+    let activeSessionId = sessionId
+
+    if (activeSessionId) {
+      let session = await prisma.chatSession.findUnique({ where: { id: activeSessionId } })
+      if (!session) {
+        session = await prisma.chatSession.create({
+          data: {
+            id: activeSessionId,
+            patientName: patientName || null,
+            patientEmail: patientEmail || null,
+            patientPhone: patientPhone || null,
+            status: 'active',
+          },
+        })
+      }
+
+      await prisma.chatMessage.create({
+        data: {
+          content,
+          sender: patientName || 'Anonymous',
+          isAdmin: false,
+          sessionId: activeSessionId,
+        },
+      })
+
+      await prisma.chatMessage.create({
+        data: {
+          content: reply,
+          sender: 'Bot',
+          isAdmin: false,
+          sessionId: activeSessionId,
+        },
+      })
+    }
+
+    if (bookingMatch && patientName && patientPhone) {
+      const appointmentData: any = {
+        patientName,
+        email: patientEmail || '',
+        phone: patientPhone,
+        notes: content,
+        date: new Date(),
+        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        status: 'pending',
+        serviceId: (await prisma.service.findFirst({ where: { isActive: true } }))?.id || '',
+        doctorId: (await prisma.doctor.findFirst())?.id || '',
+      }
+
+      if (appointmentData.serviceId && appointmentData.doctorId) {
+        await prisma.appointment.create({ data: appointmentData })
+      }
+    }
+
+    return Response.json({
+      success: true,
+      reply,
+      message: { content: reply },
+      intent: bookingMatch ? 'booking' : 'general',
+      sessionId: activeSessionId,
+    }, { status: 201 })
   } catch {
-    return Response.json({ success: true, reply: 'Thank you! Our team will get back to you shortly.', message: { content: 'Thank you! Our team will get back to you shortly.' } }, { status: 201 })
+    return Response.json({
+      success: true,
+      reply: 'Thank you! Our team will get back to you shortly.',
+      message: { content: 'Thank you! Our team will get back to you shortly.' },
+      intent: 'general',
+    }, { status: 201 })
   }
 }
