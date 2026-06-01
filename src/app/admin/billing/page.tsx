@@ -217,7 +217,7 @@ export default function BillingPage() {
                         <input
                           required
                           placeholder="Service name"
-                          value={item.service}
+                          value={item.serviceName}
                           onChange={(e) => updateItem(i, 'service', e.target.value)}
                           className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B8A5D]/20 focus:border-[#1B8A5D]"
                         />

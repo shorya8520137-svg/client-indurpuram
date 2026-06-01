@@ -151,16 +151,16 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id        String  @id @default(cuid())
-  service   String
+  id          String  @id @default(cuid())
+  serviceName String
   description String?
-  quantity  Int     @default(1)
-  rate      Float
-  amount    Float
-  invoiceId String
-  invoice   Invoice @relation(fields: [invoiceId], references: [id])
-  serviceId String?
-  service   Service? @relation(fields: [serviceId], references: [id])
+  quantity    Int     @default(1)
+  rate        Float
+  amount      Float
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  serviceId   String?
+  service     Service? @relation(fields: [serviceId], references: [id])
 }
 
 model Transaction {

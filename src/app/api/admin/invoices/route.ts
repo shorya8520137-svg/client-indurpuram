@@ -60,7 +60,7 @@ export async function POST(request: Request) {
         total,
         items: {
           create: items.map((item: any) => ({
-            service: item.service,
+            serviceName: item.serviceName,
             quantity: item.quantity,
             rate: item.rate,
             amount: item.quantity * item.rate,
