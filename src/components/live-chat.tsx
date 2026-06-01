@@ -70,6 +70,17 @@ export function LiveChat() {
   const handleSend = useCallback(async (content: string) => {
     if (!content.trim()) return
 
+    if (showForm && name.trim()) {
+      try {
+        await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone, message: 'Website Chat lead', source: 'Website Chat' }),
+        })
+      } catch {}
+      setShowForm(false)
+    }
+
     const userMessage = {
       id: Date.now().toString(),
       content: content.trim(),
@@ -119,7 +130,7 @@ export function LiveChat() {
         timestamp: new Date().toISOString(),
       }])
     }
-  }, [sessionId])
+  }, [sessionId, name, phone, showForm])
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -198,28 +209,33 @@ export function LiveChat() {
                   onSubmit={handleFormSubmit}
                   className="bg-white rounded-xl p-4 border border-gray-200 space-y-3 mb-3"
                 >
-                  <p className="text-xs font-medium text-gray-600">Share your details to connect with us:</p>
+                  <p className="text-xs font-medium text-gray-600">Share your details (optional):</p>
                   <input
                     type="text"
-                    placeholder="Your Name *"
+                    placeholder="Your Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-[#1B8A5D]"
-                    required
                   />
                   <input
                     type="tel"
-                    placeholder="Phone Number *"
+                    placeholder="Phone Number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-[#1B8A5D]"
-                    required
                   />
                   <button
                     type="submit"
                     className="w-full py-2 rounded-lg bg-[#1B8A5D] text-white text-sm font-medium hover:bg-[#157a4f] transition-colors"
                   >
                     Start Chat
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="w-full text-xs text-gray-400 hover:text-gray-600 text-center"
+                  >
+                    Skip, start chatting
                   </button>
                 </motion.form>
               )}
@@ -281,8 +297,7 @@ export function LiveChat() {
                 {quickReplies.map((reply) => (
                   <button
                     key={reply}
-                    onClick={() => { if (!showForm) handleSend(reply) }}
-                    disabled={showForm}
+                    onClick={() => handleSend(reply)}
                     className="px-3 py-1.5 text-xs rounded-full bg-gray-100 text-gray-600 hover:bg-[#1B8A5D]/10 hover:text-[#1B8A5D] transition-colors disabled:opacity-40"
                   >
                     {reply}
@@ -295,14 +310,13 @@ export function LiveChat() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && !showForm) { e.preventDefault(); handleSend(input) } }}
-                  placeholder={showForm ? 'Fill details above first...' : 'Type your message...'}
-                  disabled={showForm}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(input) } }}
+                  placeholder={'Type your message...'}
                   className="flex-1 px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-[#1B8A5D] transition-colors disabled:opacity-50"
                 />
                 <button
                   onClick={() => handleSend(input)}
-                  disabled={!input.trim() || showForm}
+                  disabled={!input.trim()}
                   className="w-10 h-10 rounded-xl bg-[#1B8A5D] flex items-center justify-center disabled:opacity-50 hover:bg-[#157a4f] transition-colors"
                 >
                   <Send className="w-4 h-4 text-white" />
