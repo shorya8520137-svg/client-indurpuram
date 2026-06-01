@@ -39,6 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = () => {
     localStorage.removeItem('admin_auth')
+    document.cookie = 'admin_auth=; path=/; max-age=0'
     router.push('/admin/login')
   }
 

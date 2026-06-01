@@ -11,9 +11,9 @@ export default function AdminLogin() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    // Demo credentials — change these in production
     if (email === 'admin@wasidental.com' && password === 'admin123') {
       localStorage.setItem('admin_auth', 'true')
+      document.cookie = 'admin_auth=true; path=/; max-age=86400'
       router.push('/admin')
     } else {
       setError('Invalid credentials')
