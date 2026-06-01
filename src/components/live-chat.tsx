@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/store/useStore'
 import { MessageCircle, X, Send, Bot } from 'lucide-react'
 
-const API_URL = ''
-
 const welcomeMessage = {
   id: 'welcome',
   content: 'Hello! Welcome to Wasi Dental Clinic. How can we help you today?',
@@ -22,9 +20,36 @@ const quickReplies = [
   'Talk to a dentist',
 ]
 
+function TypewriterText({ content, speed = 30 }: { content: string; speed?: number }) {
+  const [displayed, setDisplayed] = useState('')
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    setDisplayed('')
+    setDone(false)
+    let i = 0
+    const timer = setInterval(() => {
+      i++
+      setDisplayed(content.slice(0, i))
+      if (i >= content.length) {
+        clearInterval(timer)
+        setDone(true)
+      }
+    }, speed)
+    return () => clearInterval(timer)
+  }, [content, speed])
+
+  return (
+    <span>
+      {displayed}
+      {!done && <span className="animate-pulse">|</span>}
+    </span>
+  )
+}
+
 export function LiveChat() {
   const { isChatOpen, setIsChatOpen } = useUIStore()
-  const [messages, setMessages] = useState<any[]>([welcomeMessage])
+  const [messages, setMessages] = useState<any[]>([{ ...welcomeMessage, _typing: true, _done: false }])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [name, setName] = useState('')
@@ -69,19 +94,25 @@ export function LiveChat() {
       const reply = data.message?.content || data.reply || 'Thank you! Our team will get back to you shortly.'
 
       setIsTyping(false)
+      const botId = (Date.now() + 1).toString()
       setMessages((prev) => [...prev, {
-        id: (Date.now() + 1).toString(),
+        id: botId,
         content: reply,
         sender: 'bot',
+        _typing: true,
+        _done: false,
         timestamp: new Date().toISOString(),
       }])
       if (data.sessionId) setSessionId(data.sessionId)
     } catch {
       setIsTyping(false)
+      const reply = 'Thank you for your message! Our team will get back to you shortly. For immediate assistance, please call our clinic.'
       setMessages((prev) => [...prev, {
         id: (Date.now() + 1).toString(),
-        content: 'Thank you for your message! Our team will get back to you shortly. For immediate assistance, please call our clinic.',
+        content: reply,
         sender: 'bot',
+        _typing: true,
+        _done: false,
         timestamp: new Date().toISOString(),
       }])
     }
@@ -104,6 +135,8 @@ export function LiveChat() {
       id: Date.now().toString(),
       content: `Welcome, ${name}! How can we help you today?`,
       sender: 'bot',
+      _typing: true,
+      _done: false,
       timestamp: new Date().toISOString(),
     }])
   }
@@ -202,7 +235,11 @@ export function LiveChat() {
                         : 'bg-white border border-gray-200 rounded-tl-sm text-gray-700'
                     }`}
                   >
-                    {msg.content}
+                    {msg.sender === 'bot' && msg._typing ? (
+                      <TypewriterText content={msg.content} speed={25} />
+                    ) : (
+                      msg.content
+                    )}
                   </div>
                 </motion.div>
               ))}
