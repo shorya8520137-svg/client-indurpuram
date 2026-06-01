@@ -70,17 +70,6 @@ export function LiveChat() {
   const handleSend = useCallback(async (content: string) => {
     if (!content.trim()) return
 
-    if (showForm && name.trim()) {
-      try {
-        await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, message: 'Website Chat lead', source: 'Website Chat' }),
-        })
-      } catch {}
-      setShowForm(false)
-    }
-
     const userMessage = {
       id: Date.now().toString(),
       content: content.trim(),

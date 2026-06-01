@@ -5,7 +5,12 @@ Answer questions about:
 - Clinic location: Marine Drive, Mumbai
 - Contact information
 
-Be friendly, professional, and concise. If asked about booking, guide them to book an appointment.`
+When a user wants to book an appointment:
+1. Ask for their name, phone number, preferred date/time, and service needed
+2. Once you have name + phone + service + date/time, say "I have all the details needed to book your appointment. Let me confirm: [summary]. I'll book it now."
+3. Do NOT ask for details the user already provided
+4. Available time slots: 9 AM to 4 PM, Mon-Sat
+5. Be friendly, professional, and concise`
 
 export function GET() {
   return Response.json({ status: 'Chat API ready' })
@@ -37,7 +42,7 @@ export async function POST(request: Request) {
     const data = await res.json()
     const reply = data.choices?.[0]?.message?.content || 'Thank you! Our team will get back to you shortly.'
 
-    const bookingMatch = content.match(/book|appointment|schedule|visit/i)
+    const bookingMatch = content.match(/book|appointment|schedule|visit|confirm/i)
 
     const { prisma } = await import('@/lib/prisma')
 
@@ -76,17 +81,30 @@ export async function POST(request: Request) {
       })
     }
 
-    if (bookingMatch && patientName && patientPhone) {
+    const nameMatch = content.match(/(?:my name is|i am|i'm)\s+(\w+)/i) || content.match(/name[:\s]+(\w+)/i)
+    const phoneMatch = content.match(/(\d{10})/)
+    const timeMatch = content.match(/(\d{1,2})\s*(?:pm|am|:)/i)
+    const extractedName = patientName || (nameMatch ? nameMatch[1] : null)
+    const extractedPhone = patientPhone || (phoneMatch ? phoneMatch[1] : null)
+    const extractedTime = timeMatch ? timeMatch[0] : null
+
+    if (bookingMatch && extractedName && extractedPhone) {
+      const service = await prisma.service.findFirst({ where: { isActive: true } })
+      const doctor = await prisma.doctor.findFirst()
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      tomorrow.setHours(10, 0, 0, 0)
+
       const appointmentData: any = {
-        patientName,
+        patientName: extractedName,
         email: patientEmail || '',
-        phone: patientPhone,
+        phone: extractedPhone,
         notes: content,
-        date: new Date(),
-        time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        date: tomorrow,
+        time: extractedTime || '10:00 AM',
         status: 'pending',
-        serviceId: (await prisma.service.findFirst({ where: { isActive: true } }))?.id || '',
-        doctorId: (await prisma.doctor.findFirst())?.id || '',
+        serviceId: service?.id || '',
+        doctorId: doctor?.id || '',
       }
 
       if (appointmentData.serviceId && appointmentData.doctorId) {
