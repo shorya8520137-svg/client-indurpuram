@@ -41,7 +41,7 @@ export default function AdminChats() {
     try {
       const res = await fetch('/api/admin/chats')
       const data = await res.json()
-      setSessions(data.sessions)
+      if (data.sessions) setSessions(data.sessions)
     } catch (err) {
       console.error('Failed to fetch sessions', err)
     } finally {

@@ -1,18 +1,19 @@
-import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
+    const { prisma } = await import('@/lib/prisma')
     const sessions = await prisma.chatSession.findMany({
       orderBy: { updatedAt: 'desc' },
-      include: {
-        _count: { select: { messages: true } },
-      },
     })
-
-    return NextResponse.json({ sessions })
-  } catch (error) {
-    console.error('Error fetching chat sessions:', error)
-    return NextResponse.json({ error: 'Failed to fetch chat sessions' }, { status: 500 })
+    const sessionsWithCount = await Promise.all(
+      sessions.map(async (s: any) => {
+        const count = await prisma.chatMessage.count({ where: { sessionId: s.id } })
+        return { ...s, _count: { messages: count } }
+      })
+    )
+    return NextResponse.json({ sessions: sessionsWithCount })
+  } catch (error: any) {
+    return NextResponse.json({ error: error?.message || 'Failed to fetch chat sessions' }, { status: 500 })
   }
 }
