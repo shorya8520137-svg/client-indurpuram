@@ -24,7 +24,7 @@ export async function POST(request: Request) {
         'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://client-indurpuram.vercel.app',
       },
       body: JSON.stringify({
-        model: 'mistralai/mistral-7b-instruct-v0.1',
+        model: 'mistralai/mistral-small-24b-instruct-2501',
         temperature: 0,
         max_tokens: 1000,
         messages: [
