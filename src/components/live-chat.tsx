@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '@/store/useStore'
 import { MessageCircle, X, Send, Bot } from 'lucide-react'
 
-const API_URL = process.env.NEXT_PUBLIC_DENTALOS_API_URL || 'http://localhost:4000/api'
+const API_URL = ''
 
 const welcomeMessage = {
   id: 'welcome',
@@ -56,7 +56,7 @@ export function LiveChat() {
     setIsTyping(true)
 
     try {
-      const res = await fetch(`${API_URL}/chat/message`, {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -92,10 +92,10 @@ export function LiveChat() {
     if (!name.trim() || !phone.trim()) return
 
     try {
-      await fetch(`${API_URL}/leads`, {
+      await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, source: 'Website Chat' }),
+        body: JSON.stringify({ name, phone, message: 'Website Chat lead', source: 'Website Chat' }),
       })
     } catch {}
 
