@@ -56,6 +56,12 @@ export function Navbar() {
               </a>
             ))}
             <a
+              href="/admin"
+              className="px-4 py-2 rounded-full text-sm text-[#4A5568] hover:text-[#1B8A5D] hover:bg-black/[0.03] transition-all duration-300"
+            >
+              Admin
+            </a>
+            <a
               href="#appointment"
               className="ml-4 px-6 py-2.5 rounded-full bg-gradient-to-r from-[#1B8A5D] to-[#2ECC71] text-white text-sm font-medium shadow-lg shadow-[#1B8A5D]/20 hover:shadow-xl hover:shadow-[#1B8A5D]/30 hover:scale-105 transition-all duration-500"
             >
@@ -91,6 +97,13 @@ export function Navbar() {
                   {link.label}
                 </a>
               ))}
+              <a
+                href="/admin"
+                onClick={() => setMobileOpen(false)}
+                className="block px-4 py-3 rounded-xl text-[#4A5568] hover:text-[#0F1A12] hover:bg-black/[0.02] transition-all"
+              >
+                Admin
+              </a>
               <a
                 href="#appointment"
                 onClick={() => setMobileOpen(false)}
